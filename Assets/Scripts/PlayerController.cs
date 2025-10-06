@@ -1,25 +1,28 @@
 using UnityEngine;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
-    private Rigidbody playerRb; 
+    private Rigidbody playerRb;
     private float jumpForce = 700;
     private float gravityModifier = 1.5f;
     public bool isOnGround = true;
     public bool gameOver = false;
-    private Animator playerAnim; 
+    private Animator playerAnim;
     public ParticleSystem explosionParticle;
     public ParticleSystem dirtParticle;
     public AudioClip jumpSound;
     public AudioClip crashSound;
     private AudioSource playerAudio;
+    private int playerScore = 0;
+    public TMP_Text scoreText;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         playerRb = GetComponent<Rigidbody>();
         //playerRb.AddForce(Vector3.up * 1000);
-        Physics.gravity *= gravityModifier; 
+        Physics.gravity *= gravityModifier;
         playerAnim = GetComponent<Animator>();
         playerAudio = GetComponent<AudioSource>();
 
@@ -28,7 +31,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && isOnGround && !gameOver){
+        if (Input.GetKeyDown(KeyCode.Space) && isOnGround && !gameOver)
+        {
             playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             isOnGround = false;
             playerAnim.SetTrigger("Jump_trig");
@@ -37,20 +41,35 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision){
-        if (collision.gameObject.CompareTag("Ground")){
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
             isOnGround = true;
             dirtParticle.Play();
-        }else if (collision.gameObject.CompareTag("Obstacle")){
-            gameOver = true; 
+        }
+        else if (collision.gameObject.CompareTag("Obstacle"))
+        {
+            gameOver = true;
             Debug.Log("Game Over!");
             playerAnim.SetBool("Death_b", true);
             playerAnim.SetInteger("DeathType_int", 1);
             explosionParticle.Play();
             dirtParticle.Stop();
-            playerAudio.PlayOneShot(crashSound, 1.0f); 
+            playerAudio.PlayOneShot(crashSound, 1.0f);
         }
-        
+
     }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag("SuccessTrigger") && !gameOver)
+        {
+            playerScore += 1;
+            //Debug.Log("You get a Point, and you get a point, everyone gets a point!" + playerScore);
+            scoreText.text = "SCORE: " + playerScore;
+        }
+    }
+    
 
 }
